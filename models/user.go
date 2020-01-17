@@ -14,7 +14,7 @@ func (u User) Insert() {
 
 	defer con.Close()
 
-	insert, err := con.Query("INSERT INTO smartpark (nome, email, password) VALUES(?, ?, ?)", u.Nome, u.Email, u.Password)
+	insert, err := con.Query("INSERT INTO user (nome, email, password) VALUES(?, ?, ?)", u.Nome, u.Email, u.Password)
 
 	if err != nil {
 		panic(err.Error())
