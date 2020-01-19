@@ -2,8 +2,9 @@ package controllers
 
 import (
 	"encoding/json"
-	"github.com/matherique/api-golang/models"
 	"net/http"
+
+	"github.com/matherique/api-golang/models"
 )
 
 // Response of an user
@@ -14,8 +15,10 @@ type Response struct {
 
 // UserIndex page handler
 func UserIndex(w http.ResponseWriter, r *http.Request) {
-	alluser := models.User.GetAll(models.User{})
-
+	alluser, err := models.User.GetAll(models.User{})
+	if err != nil {
+		json.NewEncoder(w).Encode(Response{Error: err.Error()})
+	}
 	json.NewEncoder(w).Encode(Response{Data: alluser})
 }
 
@@ -27,9 +30,29 @@ func UserStore(w http.ResponseWriter, r *http.Request) {
 	err := decoder.Decode(&user)
 
 	if err != nil {
-		panic(err)
+		json.NewEncoder(w).Encode(Response{Error: err.Error()})
+		return
 	}
 
-	insertedUser := user.Insert()
+	insertedUser, err := user.Insert()
+
+	if err != nil {
+		json.NewEncoder(w).Encode(Response{Error: err.Error()})
+		return
+	}
+
 	json.NewEncoder(w).Encode(Response{Data: insertedUser})
+}
+
+// UserUpdate page handler
+func UserUpdate(w http.ResponseWriter, r *http.Request) {
+	decoder := json.NewDecoder(r.Body)
+	var user models.User
+	err := decoder.Decode(&user)
+
+	if err != nil {
+		json.NewEncoder(w).Encode(Response{Error: err.Error()})
+		return
+	}
+
 }

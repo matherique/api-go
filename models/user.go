@@ -1,6 +1,14 @@
 package models
 
-import "golang.org/x/crypto/bcrypt"
+import (
+	"context"
+
+	"golang.org/x/crypto/bcrypt"
+)
+
+var (
+	ctx context.Context
+)
 
 // User that we create
 type User struct {
@@ -11,18 +19,120 @@ type User struct {
 }
 
 // Insert user in the database
-func (u User) Insert() User {
-	con := Connection()
+func (u User) Insert() (User, error) {
+	con, err := Connection()
+
+	if err != nil {
+		return User{}, err
+	}
 
 	defer con.Close()
 
 	hash, err := bcrypt.GenerateFromPassword([]byte(u.Password), bcrypt.DefaultCost)
 
 	if err != nil {
-		panic(err.Error())
+		return User{}, err
 	}
 
-	result, err := con.Exec("INSERT INTO user (nome, email, password) VALUES(?, ?, ?)", u.Nome, u.Email, hash)
+	stmt, err := con.PrepareContext(ctx, "INSERT INTO user (nome, email, password) VALUES(?, ?, ?)")
+
+	if err != nil {
+		return User{}, err
+	}
+
+	u.Password = string(hash)
+
+	defer stmt.Close()
+
+	if _, err := stmt.Exec(u.Nome, u.Email, u.Password); err != nil {
+		return User{}, err
+	}
+
+	return u, nil
+}
+
+// GetAll list all users in the database
+func (u User) GetAll() ([]User, error) {
+	con, err := Connection()
+
+	if err != nil {
+		return []User{}, err
+	}
+
+	defer con.Close()
+
+	rows, err := con.QueryContext(ctx, "SELECT id, nome, email, password FROM user")
+	defer rows.Close()
+
+	if err != nil {
+		return []User{}, err
+	}
+
+	users := make([]User, 0)
+
+	for rows.Next() {
+		var user User
+
+		if err = rows.Scan(&user.ID, &user.Nome, &user.Email, &user.Password); err != nil {
+			return []User{}, err
+		}
+
+		users = append(users, user)
+	}
+
+	return users, nil
+
+}
+
+// CheckLogin verify if user and password exist
+func (u User) CheckLogin() (bool, error) {
+
+	con, err := Connection()
+
+	if err != nil {
+		return false, err
+	}
+
+	defer con.Close()
+
+	var hashedPass string
+
+	err = con.QueryRowContext(ctx, "SELECT password FROM user WHERE email = ?", u.Email).Scan(&hashedPass)
+
+	if err != nil {
+		return false, err
+	}
+
+	err = bcrypt.CompareHashAndPassword([]byte(hashedPass), []byte(u.Password))
+
+	if err != nil {
+		return false, err
+	}
+
+	return true, nil
+}
+
+// Update user
+func (u User) Update() (User, error) {
+	con, err := Connection()
+
+	if err != nil {
+		return User{}, err
+	}
+
+	defer con.Close()
+
+	if u.Password != "" {
+		hashed, err := bcrypt.GenerateFromPassword([]byte(u.Password), bcrypt.DefaultCost)
+
+		if err != nil {
+			panic(err.Error())
+		}
+
+		u.Password = string(hashed)
+	}
+
+	result, err := con.Exec("UPDATE INTO user $FIELD VALUES(?, ?, ?)", u.Nome, u.Email, u.Password)
 
 	if err != nil {
 		panic(err.Error())
@@ -30,67 +140,5 @@ func (u User) Insert() User {
 	}
 	_, err = result.RowsAffected()
 
-	if err != nil {
-		panic(err.Error())
-	}
-
-	u.Password = string(hash)
-
-	return u
-}
-
-// GetAll list all users in the database
-func (u User) GetAll() []User {
-	con := Connection()
-
-	defer con.Close()
-	results, err := con.Query("SELECT id, nome, email, password FROM user")
-
-	if err != nil {
-		panic(err.Error())
-	}
-
-	var users []User
-
-	for results.Next() {
-		var user User
-		err = results.Scan(&user.ID, &user.Nome, &user.Email, &user.Password)
-
-		if err != nil {
-			panic(err.Error())
-		}
-		users = append(users, user)
-	}
-
-	return users
-
-}
-
-// CheckLogin verify if user and password exist
-func (u User) CheckLogin() (bool, error) {
-
-	con := Connection()
-
-	defer con.Close()
-	results, err := con.Query("SELECT password FROM user WHERE email = ?", u.Email)
-
-	if err != nil {
-		return false, err
-	}
-
-	var resUser User
-	results.Next()
-	err = results.Scan(&resUser.Password)
-
-	if err != nil {
-		return false, err
-	}
-
-	err = bcrypt.CompareHashAndPassword([]byte(resUser.Password), []byte(u.Password))
-
-	if err != nil {
-		return false, err
-	}
-
-	return true, nil
+	return u, err
 }

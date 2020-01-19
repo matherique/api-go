@@ -21,11 +21,13 @@ var routerList = []routerInfo{
 	{path: "/login", handler: controllers.Login, met: []string{"POST"}},
 	{path: "/users", handler: controllers.UserIndex, met: []string{"GET"}},
 	{path: "/users", handler: controllers.UserStore, met: []string{"POST"}},
+	{path: "/users", handler: controllers.UserUpdate, met: []string{"PUT"}},
 }
 
 // Loggin function
 func withLogging(f http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
 		log.Printf("%s - %s", r.URL, r.Method)
 		f(w, r)
 	}
