@@ -6,11 +6,17 @@ import (
 	"net/http"
 )
 
+// Response of an user
+type Response struct {
+	Error string      `json:"error"`
+	Data  interface{} `json:"data"`
+}
+
 // UserIndex page handler
 func UserIndex(w http.ResponseWriter, r *http.Request) {
 	alluser := models.User.GetAll(models.User{})
 
-	json.NewEncoder(w).Encode(alluser)
+	json.NewEncoder(w).Encode(Response{Data: alluser})
 }
 
 // UserStore page handler
@@ -24,6 +30,6 @@ func UserStore(w http.ResponseWriter, r *http.Request) {
 		panic(err)
 	}
 
-	user.Insert()
-	json.NewEncoder(w).Encode(user)
+	insertedUser := user.Insert()
+	json.NewEncoder(w).Encode(Response{Data: insertedUser})
 }

@@ -1,5 +1,7 @@
 package models
 
+import "golang.org/x/crypto/bcrypt"
+
 // User that we create
 type User struct {
 	ID       string `json:"id,omitempty"`
@@ -8,19 +10,33 @@ type User struct {
 	Password string `json:"password,omitempty"`
 }
 
-// Insert  user in the database
-func (u User) Insert() {
+// Insert user in the database
+func (u User) Insert() User {
 	con := Connection()
 
 	defer con.Close()
 
-	insert, err := con.Query("INSERT INTO user (nome, email, password) VALUES(?, ?, ?)", u.Nome, u.Email, u.Password)
+	hash, err := bcrypt.GenerateFromPassword([]byte(u.Password), bcrypt.DefaultCost)
 
 	if err != nil {
 		panic(err.Error())
 	}
 
-	defer insert.Close()
+	result, err := con.Exec("INSERT INTO user (nome, email, password) VALUES(?, ?, ?)", u.Nome, u.Email, hash)
+
+	if err != nil {
+		panic(err.Error())
+
+	}
+	_, err = result.RowsAffected()
+
+	if err != nil {
+		panic(err.Error())
+	}
+
+	u.Password = string(hash)
+
+	return u
 }
 
 // GetAll list all users in the database
@@ -47,4 +63,34 @@ func (u User) GetAll() []User {
 	}
 
 	return users
+
+}
+
+// CheckLogin verify if user and password exist
+func (u User) CheckLogin() (bool, error) {
+
+	con := Connection()
+
+	defer con.Close()
+	results, err := con.Query("SELECT password FROM user WHERE email = ?", u.Email)
+
+	if err != nil {
+		return false, err
+	}
+
+	var resUser User
+	results.Next()
+	err = results.Scan(&resUser.Password)
+
+	if err != nil {
+		return false, err
+	}
+
+	err = bcrypt.CompareHashAndPassword([]byte(resUser.Password), []byte(u.Password))
+
+	if err != nil {
+		return false, err
+	}
+
+	return true, nil
 }

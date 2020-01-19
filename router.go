@@ -18,6 +18,7 @@ type routerInfo struct {
 
 var routerList = []routerInfo{
 	{path: "/", handler: controllers.HomeIndex, met: []string{"GET"}},
+	{path: "/login", handler: controllers.Login, met: []string{"POST"}},
 	{path: "/users", handler: controllers.UserIndex, met: []string{"GET"}},
 	{path: "/users", handler: controllers.UserStore, met: []string{"POST"}},
 }
