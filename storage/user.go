@@ -2,6 +2,10 @@ package models
 
 import (
 	"context"
+	"encoding/json"
+	"fmt"
+	"log"
+	"strings"
 
 	"golang.org/x/crypto/bcrypt"
 )
@@ -13,7 +17,7 @@ var (
 // User that we create
 type User struct {
 	ID       string `json:"id,omitempty"`
-	Nome     string `json:"nome,omitempty"`
+	Name     string `json:"name,omitempty"`
 	Email    string `json:"email,omitempty"`
 	Password string `json:"password,omitempty"`
 }
@@ -34,7 +38,7 @@ func (u User) Insert() (User, error) {
 		return User{}, err
 	}
 
-	stmt, err := con.PrepareContext(ctx, "INSERT INTO user (nome, email, password) VALUES(?, ?, ?)")
+	stmt, err := con.Prepare("INSERT INTO user (name, email, password) VALUES(?, ?, ?)")
 
 	if err != nil {
 		return User{}, err
@@ -44,7 +48,7 @@ func (u User) Insert() (User, error) {
 
 	defer stmt.Close()
 
-	if _, err := stmt.Exec(u.Nome, u.Email, u.Password); err != nil {
+	if _, err := stmt.Exec(u.Name, u.Email, u.Password); err != nil {
 		return User{}, err
 	}
 
@@ -61,7 +65,7 @@ func (u User) GetAll() ([]User, error) {
 
 	defer con.Close()
 
-	rows, err := con.QueryContext(ctx, "SELECT id, nome, email, password FROM user")
+	rows, err := con.Query("SELECT id, name, email FROM user")
 	defer rows.Close()
 
 	if err != nil {
@@ -73,7 +77,7 @@ func (u User) GetAll() ([]User, error) {
 	for rows.Next() {
 		var user User
 
-		if err = rows.Scan(&user.ID, &user.Nome, &user.Email, &user.Password); err != nil {
+		if err = rows.Scan(&user.ID, &user.Name, &user.Email); err != nil {
 			return []User{}, err
 		}
 
@@ -86,7 +90,6 @@ func (u User) GetAll() ([]User, error) {
 
 // CheckLogin verify if user and password exist
 func (u User) CheckLogin() (bool, error) {
-
 	con, err := Connection()
 
 	if err != nil {
@@ -97,7 +100,7 @@ func (u User) CheckLogin() (bool, error) {
 
 	var hashedPass string
 
-	err = con.QueryRowContext(ctx, "SELECT password FROM user WHERE email = ?", u.Email).Scan(&hashedPass)
+	err = con.QueryRow("SELECT password FROM user WHERE email = ?", u.Email).Scan(&hashedPass)
 
 	if err != nil {
 		return false, err
@@ -113,11 +116,11 @@ func (u User) CheckLogin() (bool, error) {
 }
 
 // Update user
-func (u User) Update() (User, error) {
+func (u User) Update(id string) (bool, error) {
 	con, err := Connection()
 
 	if err != nil {
-		return User{}, err
+		return false, err
 	}
 
 	defer con.Close()
@@ -126,19 +129,63 @@ func (u User) Update() (User, error) {
 		hashed, err := bcrypt.GenerateFromPassword([]byte(u.Password), bcrypt.DefaultCost)
 
 		if err != nil {
-			panic(err.Error())
+			return false, err
 		}
 
 		u.Password = string(hashed)
 	}
 
-	result, err := con.Exec("UPDATE INTO user $FIELD VALUES(?, ?, ?)", u.Nome, u.Email, u.Password)
+	parsed := strucToMap(&u)
+
+	sets := make([]string, len(parsed))
+	values := make([]interface{}, len(parsed))
+
+	for k, v := range parsed {
+		if v != "" {
+			sets = append(sets, fmt.Sprintf("%s = ?", k))
+			values = append(values, v)
+		}
+	}
+
+	values = append(values, id)
+
+	setformated := strings.Join(sets, " and ")
+	fmt.Println(setformated)
+	fmt.Println(sets)
+	querystring := fmt.Sprintf("UPDATE balances SET %s WHERE user_id = ?", setformated)
+
+	result, err := con.Exec(querystring, values...)
 
 	if err != nil {
 		panic(err.Error())
 
 	}
-	_, err = result.RowsAffected()
+	rows, err := result.RowsAffected()
+	if err != nil {
+		log.Fatal(err)
+	}
 
-	return u, err
+	if rows != 1 {
+		return false, nil
+	}
+
+	return true, nil
+}
+
+func strucToMap(item interface{}) map[string]interface{} {
+	var result map[string]interface{}
+
+	jsonfydata, err := json.Marshal(item)
+
+	if err != nil {
+		log.Printf("[Error]: %s", err.Error())
+	}
+
+	err = json.Unmarshal(jsonfydata, &result)
+
+	if err != nil {
+		log.Printf("[Error]: %s", err.Error())
+	}
+
+	return result
 }

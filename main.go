@@ -5,8 +5,11 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"time"
 
+	"github.com/gorilla/mux"
 	"github.com/joho/godotenv"
+	"github.com/matherique/api-golang/handler"
 )
 
 func main() {
@@ -20,9 +23,21 @@ func main() {
 		port = string(8000)
 	}
 
-	port = fmt.Sprintf(":%v", port)
+	port = fmt.Sprintf("%v", port)
 
-	fmt.Printf("Running on http://localhost%s\n", port)
-	log.Fatal(http.ListenAndServe(port, GetRouter()))
+	router := mux.NewRouter()
+
+	handler.Home(router)
+	handler.User(router)
+
+	srv := &http.Server{
+		Handler:      router,
+		Addr:         fmt.Sprintf("%s:%s", "localhost", port),
+		WriteTimeout: 15 * time.Second,
+		ReadTimeout:  15 * time.Second,
+	}
+
+	fmt.Printf("Running on http://localhost:%s\n", port)
+	log.Fatal(srv.ListenAndServe())
 
 }
