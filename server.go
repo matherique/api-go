@@ -5,6 +5,8 @@ import (
 	"log"
 	"net/http"
 	"os"
+
+	"github.com/matherique/api-go/routes"
 )
 
 const DEFAULT_PORT string = "8080"
@@ -29,13 +31,10 @@ func newServer() server {
 	}
 }
 
-func (s *server) loadRoutes() {
-	s.mux.Handle("/", home{})
-}
-
 func (s server) Listen() error {
 	port := fmt.Sprintf(":%s", getPort())
-	s.loadRoutes()
+
+	routes.LoadRoutes(s.mux)
 
 	log.Printf("server listen on localhost%s\n", port)
 	return http.ListenAndServe(port, s.mux)
