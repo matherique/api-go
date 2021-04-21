@@ -12,5 +12,5 @@ func (h homeRoutes) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 func LoadRoutes(server *http.ServeMux) {
 	server.Handle("/", homeRoutes{})
-	server.Handle("/user", userRoutes{})
+	server.Handle("/users", usersRoute{})
 }
