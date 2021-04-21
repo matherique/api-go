@@ -3,6 +3,8 @@ package routes
 import (
 	"net/http"
 	"regexp"
+
+	"github.com/matherique/api-go/controllers"
 )
 
 type homeRoutes struct{}
@@ -20,7 +22,10 @@ func (h homeRoutes) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
 
 func LoadRoutes(server *http.ServeMux) {
+	ur := usersRoute{
+		controller: controllers.UserController{},
+	}
 	server.Handle("/", homeRoutes{})
-	server.Handle("/users", usersRoute{})
-	server.Handle("/users/", usersRoute{})
+	server.Handle("/users", ur)
+	server.Handle("/users/", ur)
 }
