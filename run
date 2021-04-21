@@ -1,5 +1,5 @@
 #!/usr/bin/bash
 
-go build -o api .
+go build -o bin/api .
 
-./api
+./bin/api
