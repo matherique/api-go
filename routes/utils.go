@@ -12,11 +12,13 @@ const (
 )
 
 func created(w http.ResponseWriter, r *http.Request, response interface{}) {
+	w.Header().Add("content-type", "application/json")
 	w.WriteHeader(http.StatusCreated)
 	json.NewEncoder(w).Encode(response)
 }
 
 func ok(w http.ResponseWriter, r *http.Request, response interface{}) {
+	w.Header().Add("content-type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(response)
 }
