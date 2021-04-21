@@ -8,6 +8,7 @@ type User struct {
 }
 
 func (u *User) Normalize() {
+
 }
 
 func (u User) Validade() (bool, error) {

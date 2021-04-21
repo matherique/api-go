@@ -2,14 +2,15 @@ package controllers
 
 import (
 	"github.com/matherique/api-go/domain"
+	"github.com/matherique/api-go/repository"
 )
 
 type UserController struct {
-	repo interface{}
+	repository repository.UserRepository
 }
 
 type User = domain.User
 
-func (cntr UserController) Index() ([]User, error) {
-	return []User{}, nil
+func (controller UserController) Index() ([]User, error) {
+	return controller.repository.List()
 }
