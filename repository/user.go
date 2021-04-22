@@ -7,7 +7,7 @@ import (
 )
 
 type UserRepository struct {
-	database *sql.DB
+	Database *sql.DB
 }
 
 func (repo *UserRepository) List() ([]domain.User, error) {

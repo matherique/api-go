@@ -22,7 +22,8 @@ func getPort() string {
 }
 
 type server struct {
-	mux *http.ServeMux
+	mux    *http.ServeMux
+	logger *log.Logger
 }
 
 func newServer() server {

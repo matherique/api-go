@@ -6,11 +6,11 @@ import (
 )
 
 type UserController struct {
-	repository repository.UserRepository
+	Repository repository.UserRepository
 }
 
 type User = domain.User
 
 func (controller UserController) Index() ([]User, error) {
-	return controller.repository.List()
+	return controller.Repository.List()
 }
