@@ -41,6 +41,7 @@ func NewUserRoute(database *sql.DB, logger *log.Logger) usersRoute {
 	repository := repository.UserRepository{
 		Database: database,
 	}
+
 	controller := controllers.UserController{
 		Repository: repository,
 	}
