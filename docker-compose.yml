@@ -1,0 +1,32 @@
+version: '3'
+
+services:
+  database: 
+    image: postgres
+    restart: always
+    environment:
+      POSTGRES_DB: api
+      POSTGRES_PASSWORD: 123
+    networks:
+      - api_network
+    volumes:
+      - ./sql/:/docker-entrypoint-initdb.d/
+  api:
+    build: .
+    restart: always
+    depends_on:
+      - database
+    ports:
+      - 3000:3000
+    networks:
+      - api_network
+    environment:
+      PORT: 3000
+      DATABASE_NAME: postgres
+      DATABASE_USERNAME: postgres
+      DATABASE_PASSWORD: postgres
+      DATABASE_HOST: database
+
+networks:
+  api_network:
+    driver: bridge
