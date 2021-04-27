@@ -1,4 +1,4 @@
-package main
+package server
 
 import (
 	"fmt"
@@ -26,7 +26,7 @@ type server struct {
 	logger *log.Logger
 }
 
-func newServer() server {
+func NewServer() server {
 	return server{
 		mux: http.NewServeMux(),
 	}

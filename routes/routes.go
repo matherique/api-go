@@ -1,17 +1,26 @@
 package routes
 
 import (
-	"database/sql"
 	"net/http"
 
+	"github.com/matherique/api-go/storage"
 	"github.com/matherique/api-go/utils"
 )
 
 func LoadRoutes(server *http.ServeMux) {
-	var database *sql.DB
+	database := storage.Database{}
+	logger := utils.NewLogger()
 
-	ur := NewUserRoute(database, utils.NewLogger())
-	hr := NewHomeRoute(utils.NewLogger())
+	connection, err := database.Connect()
+
+	if err != nil {
+		logger.Fatalf("could not connect to database: %v", err)
+	}
+
+	logger.Printf("database connect!!")
+
+	ur := NewUserRoute(connection, logger)
+	hr := NewHomeRoute(logger)
 
 	server.Handle("/", hr)
 	server.Handle("/users", ur)
