@@ -1,5 +1,7 @@
-FROM golang:alpine
-WORKDIR app
+FROM golang
+WORKDIR api
 COPY . .
 EXPOSE 3000
-CMD ["./run"]
+RUN go build -o bin/api cmd/api/main.go
+ENTRYPOINT "bin/api"
+
