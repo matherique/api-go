@@ -12,5 +12,12 @@ type Database struct {
 }
 
 func (d *Database) Connect() (*sql.DB, error) {
-	return sql.Open("postgres", "host=database user=postgres dbname=api password=123 sslmode=verify-full")
+	db, err := sql.Open("postgres", "postgres://postgres:123@localhost/apidb?sslmode=disable")
+
+	if err = db.Ping(); err != nil {
+		db.Close()
+		return nil, err
+	}
+
+	return db, err
 }
