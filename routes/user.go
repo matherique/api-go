@@ -30,6 +30,7 @@ func (u usersRoute) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 func (u usersRoute) List(w http.ResponseWriter, r *http.Request) {
 	users, err := u.controller.Index()
+
 	if err != nil {
 		internalServerError(w, r)
 	}

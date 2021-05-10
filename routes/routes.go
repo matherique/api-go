@@ -14,10 +14,8 @@ func LoadRoutes(server *http.ServeMux) {
 	connection, err := database.Connect()
 
 	if err != nil {
-		logger.Fatalf("could not connect to database: %v", err)
+		logger.Fatalf(err.Error())
 	}
-
-	logger.Printf("database connect!!")
 
 	ur := NewUserRoute(connection, logger)
 	hr := NewHomeRoute(logger)

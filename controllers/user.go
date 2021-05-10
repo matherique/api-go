@@ -9,8 +9,6 @@ type UserController struct {
 	Repository repository.UserRepository
 }
 
-type User = domain.User
-
-func (controller UserController) Index() ([]User, error) {
-	return controller.Repository.List()
+func (controller UserController) Index() ([]domain.User, error) {
+	return controller.Repository.FindAll()
 }
