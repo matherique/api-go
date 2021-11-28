@@ -1,15 +1,11 @@
-package main
+package api
 
 import (
-	"log"
-
-	"github.com/matherique/api-go/cmd/server"
+	"net/http"
 )
 
 func main() {
-	srv := server.NewServer()
+	mux := http.NewServeMux()
 
-	if err := srv.Listen(); err != nil {
-		log.Fatalf("could not start server: %v", err)
-	}
+	mux.Handle("/api/user", userRoute)
 }

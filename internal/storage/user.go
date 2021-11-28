@@ -26,8 +26,6 @@ func (repo *UserRepository) FindAll() ([]domain.User, error) {
 		var id int
 		var name string
 		var email string
-		var username string
-		var password string
 		var createdAt time.Time
 		var updatedAt time.Time
 
@@ -35,8 +33,6 @@ func (repo *UserRepository) FindAll() ([]domain.User, error) {
 			&id,
 			&name,
 			&email,
-			&username,
-			&password,
 			&createdAt,
 			&updatedAt,
 		); err != nil {
@@ -47,8 +43,6 @@ func (repo *UserRepository) FindAll() ([]domain.User, error) {
 			Id:        id,
 			Name:      name,
 			Email:     email,
-			Username:  username,
-			Password:  password,
 			CreatedAt: createdAt,
 			UpdatedAt: updatedAt,
 		}

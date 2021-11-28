@@ -9,7 +9,7 @@ import (
 	"time"
 )
 
-func NewLogger() *log.Logger {
+func NewLogger(prex string) *log.Logger {
 	date := time.Now().UTC().Format("01-02-2006")
 	filename := fmt.Sprintf("%s_log.txt", date)
 
@@ -23,5 +23,5 @@ func NewLogger() *log.Logger {
 
 	writers := io.MultiWriter(os.Stdin, fileWriter)
 
-	return log.New(writers, "", log.Ldate|log.Ltime)
+	return log.New(writers, prex, log.Ldate|log.Ltime)
 }
